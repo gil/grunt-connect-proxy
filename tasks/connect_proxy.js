@@ -34,10 +34,13 @@ module.exports = function(grunt) {
             rejectUnauthorized: false,
             rules: []
         });
-        if (_.isUndefined(proxyOption.host) || _.isUndefined(proxyOption.context)) {
+        if (_.isUndefined(proxyOption.host) || (_.isUndefined(proxyOption.context) && _.isUndefined(proxyOption.contextMatcher))) {
             grunt.log.error('Proxy missing host or context configuration');
         } else {
             proxyOption.rules = utils.processRewrites(proxyOption.rewrite, grunt.log);
+            proxyOption.contextMatcher = proxyOption.contextMatcher || function(url) {
+                return (url.lastIndexOf(proxyOption.context, 0) === 0);
+            };
             utils.registerProxy({
               server: new httpProxy.HttpProxy({
                 target: proxyOption,
