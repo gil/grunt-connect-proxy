@@ -89,6 +89,22 @@ Type: `String`
 
 The context to match requests against. Matching requests will be proxied. Should start with /. Should not end with /
 
+#### options.contextMatcher
+Type: `Function`
+
+Instead of setting options.context, you can set a custom matcher function to allow complex rules.
+
+```js
+{
+  host: 'www.example.com',
+  contextMatcher: function(url) {
+    // should match any /api call, except /api/user
+    var parts = url.split('/');
+    return (parts[1] === 'api' && parts[2] !== 'user');
+  }
+}
+```
+
 #### options.host
 Type: `String`
 

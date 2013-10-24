@@ -108,9 +108,9 @@ exports.connect_proxy = {
     test.expect(3);
     var proxies = utils.proxies();
 
-    test.equal(proxies[4].config.contextMatcher('/api/user'), true, 'custom matcher should match /api/user');
-    test.equal(proxies[4].config.contextMatcher('/api/file'), true, 'custom matcher should match /api/file');
-    test.equal(proxies[4].config.contextMatcher('/api/storage'), false, 'custom matcher should not match any other /api/*');
+    test.equal(proxies[4].config.contextMatcher('/api/file'), true, 'custom matcher should match any /api call, except /api/user');
+    test.equal(proxies[4].config.contextMatcher('/api/storage'), true, 'custom matcher should match any /api call, except /api/user');
+    test.equal(proxies[4].config.contextMatcher('/api/user'), false, 'custom matcher should not match /api/user');
 
     test.done();
   }

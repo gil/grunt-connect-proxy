@@ -81,8 +81,7 @@ module.exports = function(grunt) {
               host: 'www.defaults.com',
               contextMatcher: function(url) {
                 var parts = url.split('/');
-                var apiToMatch = ['user', 'file'];
-                return (parts[1] === 'api' && apiToMatch.indexOf(parts[2]) > -1);
+                return (parts[1] === 'api' && parts[2] !== 'user');
               }
             }
       ],
