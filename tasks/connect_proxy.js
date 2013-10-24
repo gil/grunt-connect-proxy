@@ -39,7 +39,7 @@ module.exports = function(grunt) {
         } else {
             proxyOption.rules = utils.processRewrites(proxyOption.rewrite, grunt.log);
             proxyOption.contextMatcher = proxyOption.contextMatcher || function(url) {
-                return (url.lastIndexOf(proxyOption.context, 0) === 0);
+                return (url.lastIndexOf(this.context, 0) === 0);
             };
             utils.registerProxy({
               server: new httpProxy.HttpProxy({
