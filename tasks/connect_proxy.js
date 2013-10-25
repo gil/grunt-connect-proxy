@@ -32,7 +32,8 @@ module.exports = function(grunt) {
             https: false,
             changeOrigin: false,
             rejectUnauthorized: false,
-            rules: []
+            rules: [],
+            rewriteCookiePath: null
         });
         if (_.isUndefined(proxyOption.host) || (_.isUndefined(proxyOption.context) && _.isUndefined(proxyOption.contextMatcher))) {
             grunt.log.error('Proxy missing host or context configuration');
