@@ -18,6 +18,7 @@ module.exports = function(grunt) {
       all: [
         'Gruntfile.js',
         'tasks/*.js',
+        'lib/*.js',
         '<%= nodeunit.tests %>',
       ],
       options: {
@@ -50,9 +51,11 @@ module.exports = function(grunt) {
               https: true,
               rejectUnauthorized: true,
               changeOrigin: true,
+              xforward: true,
               rewrite: {
                 '^/full': '/anothercontext'
-              }
+              },
+              timeout: 5000
             },
             {
               context: '/context/test',
@@ -78,8 +81,12 @@ module.exports = function(grunt) {
               host: 'www.missingcontext.com',
             },
             {
+              context: ['/array1','/array2'],
+              host: 'www.defaults.com'
+            },
+            {
               host: 'www.defaults.com',
-              contextMatcher: function(url) {
+              contextMatcher: function(url, context) {
                 var parts = url.split('/');
                 return (parts[1] === 'api' && parts[2] !== 'user');
               }

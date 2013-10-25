@@ -37,15 +37,17 @@ grunt.initConfig({
                     host: '10.10.2.202',
                     port: 8080,
                     https: false,
-                    changeOrigin: false
+                    changeOrigin: false,
+                    xforward: false
                 }
             ]
         }
 })
 ```
-####
-Adding the middleware
-Expose the proxy function to use in the middleware, at the top of the grunt file:
+#### Adding the middleware
+
+##### With Livereload
+Expose the proxy function to use in the middleware, at the top of the Gruntfile:
 ```js
 var proxySnippet = require('grunt-connect-proxy/lib/utils').proxyRequest;
 ```
@@ -64,6 +66,35 @@ Add the middleware call from the connect option middleware hook
             }
         }
 ```
+
+##### Without Livereload
+
+It is possible to add the proxy middleware without Livereload as follows:
+
+```js
+   // server
+    connect: {
+      server: {
+        options: {
+          port: 8000,
+          base: 'public',
+          logger: 'dev',
+          hostname: 'localhost',
+          middleware: function (connect, options) {
+             var config = [ // Serve static files.
+                                 connect.static(options.base),
+                                 // Make empty directories browsable.
+                                 connect.directory(options.base)
+                             ];
+            var proxy = require('grunt-connect-proxy/lib/utils').proxyRequest;
+            config.unshift(proxy);
+            return config;
+          }
+        }
+      }
+	  // ...
+```
+
 ### Adding the configureProxy task to the server task
 For the server task, add the configureProxies task before the connect task
 ```js
@@ -85,9 +116,11 @@ For the server task, add the configureProxies task before the connect task
 The available configuration options from a given proxy are generally the same as what is provided by the underlying [httpproxy](https://github.com/nodejitsu/node-http-proxy) library
 
 #### options.context
-Type: `String`
+Type: `String` or `Array`
 
-The context to match requests against. Matching requests will be proxied. Should start with /. Should not end with /
+The context(s) to match requests against. Matching requests will be proxied. Should start with /. Should not end with /
+Multiple contexts can be matched for the same proxy rule via an array such as:
+context: ['/api', 'otherapi'] 
 
 #### options.contextMatcher
 Type: `Function`
@@ -97,7 +130,7 @@ Instead of setting options.context, you can set a custom matcher function to all
 ```js
 {
   host: 'www.example.com',
-  contextMatcher: function(url) {
+  contextMatcher: function(url, context) {
     // should match any /api call, except /api/user
     var parts = url.split('/');
     return (parts[1] === 'api' && parts[2] !== 'user');
@@ -134,6 +167,16 @@ Default: false
 
 Whether to reject self-signed certificates when https: true is set. Defaults to accept self-signed certs since proxy is meant for development environments.
 
+#### options.xforward: 
+Type: `Boolean`
+Default: false
+
+Whether to add x-forward headers to the proxy request, such as
+  "x-forwarded-for": "127.0.0.1",
+  "x-forwarded-port": 50892,
+  "x-forwarded-proto": "http"
+
+
 #### options.appendProxies
 Type: `Boolean`
 Default: true
@@ -161,6 +204,11 @@ proxies: [
 Type: `String`
 
 Rewrite the "Path" from "Set-Cookie" response headers, useful when the host server has a different context path than your app.
+
+#### options.timeout
+Type: `Number`
+
+The connection timeout in milliseconds. The default timeout is 2 minutes (120000 ms).
 
 ## Contributing
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
@@ -216,3 +264,4 @@ grunt.registerTask('e2etest', function (target) {
 * 0.1.3 Bumped http-proxy dependency to 0.10.2
 * 0.1.4 Added proxy rewrite support (thanks to @slawrence)
 * 0.1.5 Default rejectUnauthorized to false to allow self-signed certificates over SSL
+* 0.1.6 Add xforward option, added support for context arrays, added debug logging

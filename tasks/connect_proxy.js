@@ -8,15 +8,27 @@
 
 'use strict';
 var utils = require('../lib/utils');
+var _ = require('lodash');
 
 module.exports = function(grunt) {
   grunt.registerTask('configureProxies', 'Configure any specified connect proxies.', function(config) {
     // setup proxy
-    var _ = grunt.util._;
     var httpProxy = require('http-proxy');
     var proxyOption;
     var proxyOptions = [];
+    var validateProxyConfig = function(proxyOption) {
+        if (_.isUndefined(proxyOption.host) || (_.isUndefined(proxyOption.context) && _.isUndefined(proxyOption.contextMatcher))) {
+            grunt.log.error('Proxy missing host or context configuration');
+            return false;
+        }
+        if (proxyOption.https && proxyOption.port === 80) {
+            grunt.log.warn('Proxy  for ' + proxyOption.context + ' is using https on port 80. Are you sure this is correct?');
+        }
+        return true;
+    };
+
     utils.reset();
+    utils.log = grunt.log;
     if (config) {
         var connectOptions = grunt.config('connect.'+config) || [];
         if (typeof connectOptions.appendProxies === 'undefined' || connectOptions.appendProxies) {
@@ -31,25 +43,26 @@ module.exports = function(grunt) {
             port: 80,
             https: false,
             changeOrigin: false,
+            xforward: false,
             rejectUnauthorized: false,
             rules: [],
             rewriteCookiePath: null
         });
-        if (_.isUndefined(proxyOption.host) || (_.isUndefined(proxyOption.context) && _.isUndefined(proxyOption.contextMatcher))) {
-            grunt.log.error('Proxy missing host or context configuration');
-        } else {
-            proxyOption.rules = utils.processRewrites(proxyOption.rewrite, grunt.log);
-            proxyOption.contextMatcher = proxyOption.contextMatcher || function(url) {
-                return (url.lastIndexOf(this.context, 0) === 0);
-            };
+        if (validateProxyConfig(proxyOption)) {
+            proxyOption.rules = utils.processRewrites(proxyOption.rewrite);
+            proxyOption.contextMatcher = proxyOption.contextMatcher || utils.matchContext;
             utils.registerProxy({
               server: new httpProxy.HttpProxy({
                 target: proxyOption,
-                changeOrigin: proxyOption.changeOrigin
+                changeOrigin: proxyOption.changeOrigin,
+                enable : {
+                    xforward: proxyOption.xforward // enables X-Forwarded-For
+                },
+                timeout: proxyOption.timeout
               }),
               config: proxyOption
             });
-            grunt.log.writeln('Proxy created for: ' +  proxyOption.context);
+            grunt.log.writeln('Proxy created for: ' +  proxyOption.context + ' to ' + proxyOption.host + ':' + proxyOption.port);
         }
     });
   });
