@@ -96,12 +96,14 @@ exports.connect_proxy = {
   },
 
   default_matcher: function(test) {
-    test.expect(2);
+    test.expect(4);
     var proxies = utils.proxies();
 
     var firstProxyConfig = proxies[0].config;
     test.notEqual(firstProxyConfig.contextMatcher, null, 'every proxy should have a default contextMatcher');
-    test.equal(firstProxyConfig.contextMatcher( firstProxyConfig.context + '/api/user', firstProxyConfig.context ), true, 'default matcher should match the context');
+    test.equal(firstProxyConfig.contextMatcher( '/api/user', '/api/user' ), true, 'default matcher should match the context, when string');
+    test.equal(firstProxyConfig.contextMatcher( '/api/user', ['/api', '/other'] ), true, 'default matcher should match the context, when array');
+    test.equal(firstProxyConfig.contextMatcher( '/other/call', ['/api', '/other'] ), true, 'default matcher should match the context, when array');
 
     test.done();
   },

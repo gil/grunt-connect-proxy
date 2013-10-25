@@ -130,7 +130,7 @@ Instead of setting options.context, you can set a custom matcher function to all
 ```js
 {
   host: 'www.example.com',
-  contextMatcher: function(url, context) {
+  contextMatcher: function(url) {
     // should match any /api call, except /api/user
     var parts = url.split('/');
     return (parts[1] === 'api' && parts[2] !== 'user');
